@@ -15,22 +15,15 @@ dividends = defaultdict(list)
 df = pd.read_csv('Database/Stocks.csv')
 exchanges = ['TSE', 'NASDAQ', 'NYSE']
 exchangeIndex = 0
+i = 0
 
-for i in range(len(tickers)):
-    print(exchangeIndex)
+while i < len(tickers):
     data = defaultdict(list)
     ticker = tickers[i]
-    url = f"https://www.google.com/finance/quote/{ticker}:{exchanges[exchangeIndex]}?hl=en"
-
-    if '.' in ticker:
-        ticker=ticker[:ticker.index('.')]
-    else:
+    if ticker in df['ticker']:
         i += 1
-        exchangeIndex = 0
         continue
-    
-    # url = f"https://www.marketwatch.com/investing/stock/{ticker}?countrycode=ca&mod=search_symbol"
-    # url = f"https://dividendhistory.org/payout/{ticker}/"
+    url = f"https://www.google.com/finance/quote/{ticker}:{exchanges[exchangeIndex]}?hl=en"
     try:
         page = urlopen(url)
     except Exception as e:
@@ -39,7 +32,6 @@ for i in range(len(tickers)):
         continue
     html_bytes = page.read()
     html = html_bytes.decode("utf-8")
-    # start_index = html.find("<table id='dividend_table' class='table table-striped table-bordered'>")
     soup = BeautifulSoup(html, 'html.parser')
     price = soup.find('div', class_="kf1m0")
     
@@ -49,15 +41,13 @@ for i in range(len(tickers)):
         exchangeIndex += 1
         if exchangeIndex > 2:
             print(f'Retrevied NULL value From: {ticker}')
-            i += 1
             exchangeIndex = 0
+            i += 1
             continue
         else:
             continue
     pricing = {'ticker': ticker, 'price':price, 'exchange': exchanges[exchangeIndex]}
-
     df.loc[len(df)] = pricing
-    print('Added')
     i += 1
     exchangeIndex = 0
 
